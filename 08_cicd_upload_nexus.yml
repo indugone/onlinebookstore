@@ -1,0 +1,23 @@
+---
+- hosts: nexus
+  become: yes
+
+  vars_files:
+    - vars/credentials.yml
+
+  vars:
+    nexus_url: "http://3.145.90.159:8081"
+    repo_name: "maven-releases"
+    artifact_path: "/opt/onlinebookstore/target/onlinebookstore.war"
+    group_id: "com/bookstore"
+    artifact_id: "onlinebookstore"
+    version: "1.0.0"
+
+  tasks:
+
+    - name: Upload artifact to Nexus
+      command: >
+        curl -v -u {{ nexus_username }}:{{ nexus_password }}
+        --upload-file {{ artifact_path }}
+        {{ nexus_url }}/repository/{{ repo_name }}/{{ group_id }}/{{ artifact_id }}/{{ version }}/{{ artifact_id }}-{{ version }}.war
+
