@@ -1,0 +1,46 @@
+---
+- hosts: docker
+  become: yes
+
+  vars_files:
+    - vars/credentials.yml
+
+  vars:
+    build_dir: "/opt/docker-build"
+    artifact_url: "http://3.145.90.159:8081/repository/maven-releases/com/bookstore/onlinebookstore/1.0.0/onlinebookstore-1.0.0.war"
+    image_name: "{{ dockerhub_username }}/onlinebookstore"
+
+  tasks:
+
+    - name: Install Docker
+      apt:
+        name: docker.io
+        state: present
+        update_cache: yes
+
+    - name: Create docker build directory
+      file:
+        path: "{{ build_dir }}"
+        state: directory
+
+    - name: Download WAR from Nexus
+      get_url:
+        url: "{{ artifact_url }}"
+        dest: "{{ build_dir }}/onlinebookstore.war"
+
+    - name: Create Dockerfile
+      copy:
+        dest: "{{ build_dir }}/Dockerfile"
+        content: |
+          FROM tomcat:9
+          COPY onlinebookstore.war /usr/local/tomcat/webapps/
+
+    - name: Build Docker image
+      command: docker build -t {{ image_name }}:latest {{ build_dir }}
+
+    - name: Login to DockerHub
+      command: docker login -u {{ dockerhub_username }} -p {{ dockerhub_password }}
+
+    - name: Push Docker Image to DockerHub
+      command: docker push {{ image_name }}:latest
+
