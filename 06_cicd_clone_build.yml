@@ -1,0 +1,25 @@
+---
+- hosts: maven
+  become: yes
+  vars:
+    repo_url: "https://github.com/indugone/onlinebookstore.git"
+    app_dir: "/opt/onlinebookstore"
+  tasks:
+
+    - name: Install Git & Maven
+      apt:
+        name: [git, maven]
+        state: present
+        update_cache: yes
+
+    - name: Clone project
+      git:
+        repo: "{{ repo_url }}"
+        dest: "{{ app_dir }}"
+        version: master
+        force: yes
+
+    - name: Build Artifact
+      command: mvn clean package -DskipTests
+      args:
+        chdir: "{{ app_dir }}"
