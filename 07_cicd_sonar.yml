@@ -1,0 +1,31 @@
+---
+- hosts: maven
+  become: yes
+
+  vars_files:
+    - vars/credentials.yml
+
+  vars:
+    sonar_host: "http://3.136.26.149:9000"
+    project_key: "onlinebookstore"
+    app_dir: "/opt/onlinebookstore"
+
+  tasks:
+
+    - name: Install Sonar Scanner
+      apt:
+        name: sonar-scanner
+        state: present
+        update_cache: yes
+
+    - name: Run SonarQube Scanner
+      command: >
+        sonar-scanner
+        -Dsonar.projectKey={{ project_key }}
+        -Dsonar.sources=src
+        -Dsonar.host.url={{ sonar_host }}
+        -Dsonar.login={{ sonar_username }}
+        -Dsonar.password={{ sonar_password }}
+      args:
+        chdir: "{{ app_dir }}"
+
